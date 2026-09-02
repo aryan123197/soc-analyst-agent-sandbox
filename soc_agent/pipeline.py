@@ -21,7 +21,7 @@ from typing import Optional
 
 from soc_agent import config
 from soc_agent.agents import action, ingestion, triage
-from soc_agent.services import audit, events, model_armor, store, telemetry, threat_intel, trace
+from soc_agent.services import audit, events, model_armor, sandbox, store, telemetry, threat_intel, trace
 
 
 @dataclass
@@ -33,6 +33,7 @@ class PipelineResult:
     trace: trace.Trace
     threat_intel_report: Optional[threat_intel.ThreatIntelReport] = None
     audit_certificate: Optional[audit.AuditCertificate] = None
+    sandbox_report: Optional[sandbox.SandboxReport] = None
 
 
 
@@ -71,10 +72,25 @@ def run_pipeline(
     t1 = time.time()
     hop_durations["threat_intel"] = (t1 - t0) * 1000.0
 
+    # Hop 1c: Sandbox Code Detonation & Dynamic Behavioral Analysis
+    t0 = time.time()
+    with telemetry.trace_span("sandbox_detonation_hop", case_id=item.case_id):
+        sandbox_report = sandbox.detonate_ticket_payloads(item.raw_text)
+        tr.log(
+            "sandbox",
+            f"code_payloads={sandbox_report.has_code_payloads} blocks={sandbox_report.extracted_blocks_count} "
+            f"verdict={sandbox_report.overall_verdict} risk_score={sandbox_report.overall_risk_score}/100"
+        )
+    t1 = time.time()
+    hop_durations["sandbox"] = (t1 - t0) * 1000.0
+
     case_store = store.get_case_store()
     case_store.update_case(
         item.case_id,
-        {"threat_intel": intel_report.to_dict()}
+        {
+            "threat_intel": intel_report.to_dict(),
+            "sandbox_report": sandbox_report.to_dict(),
+        }
     )
 
     # Hop 2: Model Armor screening
@@ -155,6 +171,7 @@ def run_pipeline(
             trace=tr,
             threat_intel_report=intel_report,
             audit_certificate=audit_cert,
+            sandbox_report=sandbox_report,
         )
 
     # Hop 3: Triage agent
@@ -167,6 +184,7 @@ def run_pipeline(
             screened_content=item.raw_text,
             tr=tr,
             threat_intel_summary=intel_report.formatted_summary,
+            sandbox_summary=sandbox_report.formatted_summary,
         )
     t1 = time.time()
     hop_durations["triage"] = (t1 - t0) * 1000.0
@@ -247,6 +265,7 @@ def run_pipeline(
         trace=tr,
         threat_intel_report=intel_report,
         audit_certificate=audit_cert,
+        sandbox_report=sandbox_report,
     )
 
 

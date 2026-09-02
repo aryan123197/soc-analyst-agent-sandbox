@@ -146,6 +146,35 @@ export function Stages({ res, armorAtRun }: { res: IngestResult; armorAtRun: boo
         </div>
       )}
 
+      {res.sandbox_report && res.sandbox_report.has_code_payloads && (
+        <div style={{ background: "rgba(168, 85, 247, 0.1)", border: "1px solid rgba(168, 85, 247, 0.3)", borderRadius: 8, padding: "0.65rem 0.85rem", marginBottom: 12 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ color: "#c084fc", fontSize: 11, fontWeight: 700 }}>⚡ SANDBOX CODE DETONATION TELEMETRY</span>
+            <span className={`tag ${res.sandbox_report.overall_verdict === "MALICIOUS" ? "blocked" : res.sandbox_report.overall_verdict === "SUSPICIOUS" ? "high" : "clean"}`}>
+              {res.sandbox_report.overall_verdict} (Risk: {res.sandbox_report.overall_risk_score}/100)
+            </span>
+          </div>
+          <div style={{ fontSize: 11, color: "var(--fg)", whiteSpace: "pre-wrap", marginTop: 4 }}>
+            {res.sandbox_report.formatted_summary}
+          </div>
+          {res.sandbox_report.executions.length > 0 && (
+            <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 4 }}>
+              {res.sandbox_report.executions.map((e, idx) => (
+                <div key={idx} style={{ background: "rgba(0,0,0,0.3)", borderRadius: 4, padding: "4px 8px", fontSize: 10, fontFamily: "var(--mono)" }}>
+                  <div style={{ color: "var(--accent-cyan)", display: "flex", justifyContent: "space-between" }}>
+                    <span>Payload #{idx + 1} ({e.language})</span>
+                    <span>Runtime: {e.duration_ms}ms</span>
+                  </div>
+                  {e.stdout && <div style={{ color: "#a7f3d0" }}>STDOUT: {e.stdout.slice(0, 120)}</div>}
+                  {e.stderr && <div style={{ color: "#fca5a5" }}>STDERR: {e.stderr.slice(0, 120)}</div>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+
       {stages.map((s, i) => (
         <div key={s.key}>
           <div className={`stage ${s.state}`}>

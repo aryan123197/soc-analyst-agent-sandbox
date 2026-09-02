@@ -80,4 +80,19 @@ export async function sendWebhook(
   );
 }
 
+export async function executeSandboxPayload(
+  code: string,
+  language: string = "python",
+  timeout: number = 2.0
+): Promise<{ execution: import("./types").SandboxExecutionResult; overall_report: import("./types").SandboxReport }> {
+  return asJson(
+    await fetch("/api/sandbox/execute", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, language, timeout }),
+    })
+  );
+}
+
+
 

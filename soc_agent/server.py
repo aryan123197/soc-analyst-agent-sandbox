@@ -22,10 +22,9 @@ from pydantic import BaseModel
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from soc_agent.corpus.attack_cases import CASES
 from soc_agent.pipeline import run_pipeline
-from soc_agent.services import audit, evals, events, store, telemetry
+from soc_agent.services import audit, evals, events, sandbox, store, telemetry
 from soc_agent.services import trace as trace_service
 from soc_agent.sources import gmail, replay
-
 
 
 app = FastAPI(title="SOC Analyst Agent")
@@ -87,6 +86,18 @@ class IngestResponse(BaseModel):
     trace: TraceView
     threat_intel: dict | None = None
     audit_certificate: dict | None = None
+    sandbox_report: dict | None = None
+
+
+class SandboxExecuteRequest(BaseModel):
+    code: str
+    language: str = "python"
+    timeout: float = 2.0
+
+
+class SandboxExecuteResponse(BaseModel):
+    execution: dict
+    overall_report: dict
 
 
 class RedTeamEncodeRequest(BaseModel):
@@ -146,7 +157,20 @@ def ingest(req: IngestRequest):
         trace=TraceView(**result.trace.to_dict()),
         threat_intel=result.threat_intel_report.to_dict() if result.threat_intel_report else None,
         audit_certificate=result.audit_certificate.to_dict() if result.audit_certificate else None,
+        sandbox_report=result.sandbox_report.to_dict() if result.sandbox_report else None,
     )
+
+
+@app.post("/api/sandbox/execute", response_model=SandboxExecuteResponse)
+def sandbox_execute(req: SandboxExecuteRequest):
+    """Sandbox Code Detonation Workbench API endpoint for ad-hoc execution."""
+    exec_res = sandbox.detonate_code(code=req.code, language=req.language, timeout=req.timeout)
+    report = sandbox.detonate_ticket_payloads(req.code)
+    return SandboxExecuteResponse(
+        execution=exec_res.to_dict(),
+        overall_report=report.to_dict()
+    )
+
 
 
 @app.post("/api/v1/redteam/encode", response_model=RedTeamEncodeResponse)

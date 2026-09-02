@@ -87,6 +87,30 @@ export interface WebhookUpdate {
   payload?: Record<string, unknown>;
 }
 
+export interface SandboxExecutionResult {
+  language: string;
+  code_snippet: string;
+  executed: boolean;
+  exit_code: number;
+  stdout: string;
+  stderr: string;
+  duration_ms: number;
+  timed_out: boolean;
+  ast_flagged_modules: string[];
+  ast_flagged_calls: string[];
+  risk_score: number;
+  risk_level: "SAFE" | "SUSPICIOUS" | "MALICIOUS";
+}
+
+export interface SandboxReport {
+  has_code_payloads: boolean;
+  extracted_blocks_count: number;
+  executions: SandboxExecutionResult[];
+  overall_risk_score: number;
+  overall_verdict: "CLEAN" | "SUSPICIOUS" | "MALICIOUS";
+  formatted_summary: string;
+}
+
 export interface IngestResult {
   case_id: string;
   status: "quarantined" | "actioned";
@@ -95,12 +119,14 @@ export interface IngestResult {
   action: ActionRecord | null;
   trace: { trace_id: string; case_id: string; steps: TraceStep[] };
   threat_intel?: ThreatIntelReport | null;
+  sandbox_report?: SandboxReport | null;
   audit_certificate?: AuditCertificate | null;
   integrations?: Integrations | null;
   external_status?: string | null;
   external_notes?: string | null;
   webhook_history?: WebhookUpdate[];
 }
+
 
 
 export interface CorpusCase {
