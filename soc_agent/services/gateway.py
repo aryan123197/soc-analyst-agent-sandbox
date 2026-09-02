@@ -9,10 +9,11 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Literal
 
-ActionType = Literal["escalated", "closed", "notified"]
+ActionType = Literal["escalated", "closed", "notified", "containment"]
 
 ALLOWED_IDENTITY = "action-agent"
-ALLOWED_ACTIONS: tuple[ActionType, ...] = ("escalated", "closed", "notified")
+ALLOWED_ACTIONS: tuple[ActionType, ...] = ("escalated", "closed", "notified", "containment")
+
 
 
 class GatewayPolicyError(Exception):

@@ -111,6 +111,43 @@ export interface SandboxReport {
   formatted_summary: string;
 }
 
+export interface FirewallRuleResult {
+  rule_id: string;
+  target_type: string;
+  target_value: string;
+  action: string;
+  provider: string;
+  status: string;
+  created_at: string;
+}
+
+export interface CredentialRevocationResult {
+  target_user: string;
+  revocation_ticket_id: string;
+  tokens_revoked: number;
+  account_status: string;
+  dispatched_at: string;
+}
+
+export interface EndpointIsolationResult {
+  hostname: string;
+  agent_id: string;
+  isolation_status: string;
+  provider: string;
+  network_traffic_allowed: string;
+  dispatched_at: string;
+}
+
+export interface ContainmentPlaybookSummary {
+  executed: boolean;
+  trigger_reason: string;
+  firewall_rules: FirewallRuleResult[];
+  credential_revocations: CredentialRevocationResult[];
+  endpoint_isolations: EndpointIsolationResult[];
+  dispatched_at: string;
+}
+
+
 export interface IngestResult {
   case_id: string;
   status: "quarantined" | "actioned";
@@ -120,12 +157,14 @@ export interface IngestResult {
   trace: { trace_id: string; case_id: string; steps: TraceStep[] };
   threat_intel?: ThreatIntelReport | null;
   sandbox_report?: SandboxReport | null;
+  containment_playbooks?: ContainmentPlaybookSummary | null;
   audit_certificate?: AuditCertificate | null;
   integrations?: Integrations | null;
   external_status?: string | null;
   external_notes?: string | null;
   webhook_history?: WebhookUpdate[];
 }
+
 
 
 

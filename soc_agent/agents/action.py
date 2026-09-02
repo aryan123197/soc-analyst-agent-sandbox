@@ -3,10 +3,10 @@
 Decides what to do based on triage severity, then calls through the gateway
 (soc_agent.services.gateway) which enforces identity + allowed-action policy.
 """
-from soc_agent.services import connectors, gateway, store, trace
+from soc_agent.services import connectors, gateway, playbooks, store, trace
 
 _SEVERITY_TO_ACTION = {
-    "critical": "escalated",
+    "critical": "containment",
     "high": "escalated",
     "medium": "notified",
     "low": "closed",
@@ -22,10 +22,21 @@ def act(case_id: str, severity: str, tr: trace.Trace) -> gateway.ActionRecord:
 
     case_store = store.get_case_store()
     c = case_store.get_case(case_id) or {}
+    sender = c.get("sender", "unknown@corp.example")
     triage_info = c.get("triage") or {}
     category = triage_info.get("category", "unclassified")
     reasoning = triage_info.get("reasoning", f"Actioned as {action_type} for severity {severity}")
     threat_intel_info = c.get("threat_intel")
+    sandbox_info = c.get("sandbox_report")
+
+    # Orchestrate active containment playbooks if severity is high or critical
+    containment_summary = playbooks.execute_containment_playbooks(
+        case_id=case_id,
+        severity=severity,
+        sender=sender,
+        threat_intel=threat_intel_info,
+        sandbox_report=sandbox_info,
+    )
 
     integrations_record = connectors.dispatch_outbound_integrations(
         case_id=case_id,
@@ -42,11 +53,17 @@ def act(case_id: str, severity: str, tr: trace.Trace) -> gateway.ActionRecord:
             "status": "actioned",
             "action_taken": record.to_dict(),
             "integrations": integrations_record,
+            "containment_playbooks": containment_summary.to_dict(),
         },
     )
-    tr.log("action", f"executed action={action_type} via gateway as {AGENT_IDENTITY}")
+    tr.log(
+        "action",
+        f"executed action={action_type} via gateway as {AGENT_IDENTITY}. "
+        f"Containment playbooks executed: {containment_summary.executed}"
+    )
 
     return record
+
 
 
 

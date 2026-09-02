@@ -87,6 +87,7 @@ class IngestResponse(BaseModel):
     threat_intel: dict | None = None
     audit_certificate: dict | None = None
     sandbox_report: dict | None = None
+    containment_playbooks: dict | None = None
 
 
 class SandboxExecuteRequest(BaseModel):
@@ -98,6 +99,16 @@ class SandboxExecuteRequest(BaseModel):
 class SandboxExecuteResponse(BaseModel):
     execution: dict
     overall_report: dict
+
+
+class PlaybookTriggerRequest(BaseModel):
+    case_id: str
+    severity: str = "critical"
+    sender: str = "suspicious-actor@external-target.org"
+
+
+class PlaybookTriggerResponse(BaseModel):
+    playbook_summary: dict
 
 
 class RedTeamEncodeRequest(BaseModel):
@@ -140,6 +151,9 @@ def ingest(req: IngestRequest):
         armor_enabled=req.armor_enabled,
     )
     armor = result.armor_result
+    case_doc = store.get_case_store().get_case(result.case_id) or {}
+    playbook_data = case_doc.get("containment_playbooks")
+
     return IngestResponse(
         case_id=result.case_id,
         # A blocked verdict short-circuits the pipeline before triage; anything
@@ -158,6 +172,7 @@ def ingest(req: IngestRequest):
         threat_intel=result.threat_intel_report.to_dict() if result.threat_intel_report else None,
         audit_certificate=result.audit_certificate.to_dict() if result.audit_certificate else None,
         sandbox_report=result.sandbox_report.to_dict() if result.sandbox_report else None,
+        containment_playbooks=playbook_data,
     )
 
 
@@ -170,6 +185,19 @@ def sandbox_execute(req: SandboxExecuteRequest):
         execution=exec_res.to_dict(),
         overall_report=report.to_dict()
     )
+
+
+@app.post("/api/playbooks/trigger", response_model=PlaybookTriggerResponse)
+def trigger_playbook(req: PlaybookTriggerRequest):
+    """Manually triggers containment playbooks for testing."""
+    summary = playbooks.execute_containment_playbooks(
+        case_id=req.case_id,
+        severity=req.severity,
+        sender=req.sender,
+        threat_intel={"ips_found": ["185.220.101.5"], "urls_found": ["http://malicious-login-update.com"]},
+    )
+    return PlaybookTriggerResponse(playbook_summary=summary.to_dict())
+
 
 
 

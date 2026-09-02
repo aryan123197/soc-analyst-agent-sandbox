@@ -94,5 +94,21 @@ export async function executeSandboxPayload(
   );
 }
 
+export async function triggerContainmentPlaybook(
+  caseId: string,
+  severity: string = "critical",
+  sender: string = "suspicious-actor@external-target.org"
+): Promise<{ playbook_summary: import("./types").ContainmentPlaybookSummary }> {
+  return asJson(
+    await fetch("/api/playbooks/trigger", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ case_id: caseId, severity, sender }),
+    })
+  );
+}
+
+
+
 
 

@@ -126,8 +126,37 @@ export function Stages({ res, armorAtRun }: { res: IngestResult; armorAtRun: boo
               </div>
             </div>
           )}
+
+          {res.containment_playbooks && res.containment_playbooks.executed && (
+            <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid rgba(239, 68, 68, 0.3)" }}>
+              <div style={{ fontSize: 10, color: "#f87171", fontWeight: 700, marginBottom: 4 }}>
+                🛡️ AUTOMATED CONTAINMENT & ACTIVE HOST ISOLATION PLAYBOOKS
+              </div>
+              <div style={{ fontSize: 10, color: "var(--fg)", marginBottom: 6 }}>
+                {res.containment_playbooks.trigger_reason}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {res.containment_playbooks.firewall_rules.map((r, idx) => (
+                  <div key={idx} style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 4, padding: "3px 6px", fontSize: 10, fontFamily: "var(--mono)" }}>
+                    🛑 <strong>{r.provider}:</strong> [{r.action}] {r.target_type.toUpperCase()} <code>{r.target_value}</code> ({r.rule_id})
+                  </div>
+                ))}
+                {res.containment_playbooks.credential_revocations.map((c, idx) => (
+                  <div key={idx} style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.3)", borderRadius: 4, padding: "3px 6px", fontSize: 10, fontFamily: "var(--mono)" }}>
+                    🔑 <strong>USER REVOCATION:</strong> Account <code>{c.target_user}</code> {c.account_status} ({c.tokens_revoked} tokens revoked, Ref #{c.revocation_ticket_id})
+                  </div>
+                ))}
+                {res.containment_playbooks.endpoint_isolations.map((e, idx) => (
+                  <div key={idx} style={{ background: "rgba(168,85,247,0.12)", border: "1px solid rgba(168,85,247,0.3)", borderRadius: 4, padding: "3px 6px", fontSize: 10, fontFamily: "var(--mono)" }}>
+                    🖥️ <strong>EDR HOST ISOLATION ({e.provider}):</strong> {e.hostname} status={e.isolation_status} (Traffic: {e.network_traffic_allowed})
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ) : null,
+
     },
     {
       key: "memory_bank",
