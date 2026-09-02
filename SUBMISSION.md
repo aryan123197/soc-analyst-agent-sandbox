@@ -34,12 +34,13 @@ We built **SOC Analyst Agent** to prove that enterprise AI agent fleets can oper
 ### 🛡️ What It Does
 **SOC Analyst Agent** is a zero-trust security pipeline that automates SOC alert ingestion, threat intelligence enrichment, prompt injection defense, and incident triage—while ensuring that no untrusted input can ever compromise the agent fleet.
 
-The pipeline enforces a 4-stage zero-trust architecture:
+The pipeline enforces a 5-stage zero-trust architecture:
 
-1. **Stage 1: Read-Only Ingestion & Threat Intel Extraction:** Untrusted data (emails, tickets, log streams) is isolated in a read-only sandbox. An IOC Engine extracts technical Indicators of Compromise (IPs, MD5/SHA256 hashes, URLs) and screens links in real time via **Google Cloud Web Risk API**.
+1. **Stage 1: Read-Only Ingestion, Threat Intel & Sandbox Detonation:** Untrusted data (emails, tickets, log streams) is isolated in a read-only sandbox. An IOC Engine extracts technical Indicators of Compromise (IPs, MD5/SHA256 hashes, URLs) and screens links in real time via **Google Cloud Web Risk API**. Embedded scripts (Python, Bash, PowerShell) are detonated inside an isolated **Sandbox Code Detonation Engine** with AST static profiling and bounded subprocess isolation.
 2. **Stage 2: Vertex AI Model Armor Edge Defense:** Inputs pass through an inline **Vertex AI Model Armor** guardrail. Our custom **Decode-and-Rescan Engine** decodes Base64, Hexadecimal, and URL-encoded candidate substrings, catching obfuscated evasions before they reach the LLM. Malicious inputs are auto-quarantined at the edge.
-3. **Stage 3: Gemini 3.5 Flash Triage & GEAP Memory Bank:** Clean inputs are triaged by **Gemini 3.5 Flash**, enriched by domain-scoped historical context recalled from **Gemini Enterprise Agent Platform (GEAP) Memory Bank**. This enables the agent to detect **multi-stage cross-ticket campaign attacks** that appear benign in isolation but trigger privilege escalation when correlated across tickets.
-4. **Stage 4: Deterministic Agent Gateway Policy Choke Point:** External actions (`escalate`, `close`, `notify`) must pass through a deterministic Gateway Policy Choke Point. Authorized actions automatically dispatch outbound incidents to **Jira Service Desk**, **ServiceNow ITSM**, **Salesforce Service Cloud**, **Splunk HEC**, and **PagerDuty**, sealed with an **Immutable SHA-256 Cryptographic Audit Certificate**.
+3. **Stage 3: Gemini 3.5 Flash Triage & GEAP Memory Bank:** Clean inputs are triaged by **Gemini 3.5 Flash**, enriched by dynamic sandbox execution findings and domain-scoped historical context recalled from **Gemini Enterprise Agent Platform (GEAP) Memory Bank**. This enables the agent to detect **multi-stage cross-ticket campaign attacks** that appear benign in isolation but trigger privilege escalation when correlated across tickets.
+4. **Stage 4: Deterministic Agent Gateway & Active Containment Playbooks:** Actions (`containment`, `escalate`, `close`, `notify`) pass through a deterministic Gateway Policy Choke Point. High and critical severity incidents trigger active containment playbooks: **Google Cloud Armor IP/URL Blocking**, **OAuth Token Revocation & User Suspension**, and **CrowdStrike / Defender EDR Host Isolation**. Authorized actions automatically dispatch outbound incidents to **Jira Service Desk**, **ServiceNow ITSM**, and **Splunk HEC**, sealed with an **Immutable SHA-256 Cryptographic Audit Certificate**.
+
 
 ---
 

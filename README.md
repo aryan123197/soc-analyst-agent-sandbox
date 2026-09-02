@@ -12,13 +12,16 @@ Enterprise Security Operations Centers (SOCs) process thousands of untrusted inp
 
 The **SOC Analyst Agent** establishes a production-grade, zero-trust security pipeline built on **Google Cloud Platform**:
 - **Vertex AI Model Armor** inline edge guardrail with **Pre-Screening Decode-and-Rescan** (closing Base64, Hexadecimal, and URL-encoding evasion gaps).
+- **Sandbox Code Detonation Engine** (`soc_agent/services/sandbox.py`) for isolated AST safety profiling and bounded subprocess code execution of Python, Bash, and PowerShell payloads.
 - **Google Cloud Web Risk API** (`webrisk.googleapis.com`) for real-time URL phishing and malware classification.
-- **Gemini 3.5 Flash** for intelligent incident severity triage.
+- **Gemini 3.5 Flash** for intelligent incident severity triage enriched with dynamic sandbox telemetry.
 - **Gemini Enterprise Agent Platform (GEAP) Memory Bank** for domain-scoped context recall and **Multi-Stage Cross-Ticket Campaign Correlation**.
+- **Automated Containment & Host Isolation Playbooks** (`soc_agent/services/playbooks.py`) enforcing Cloud Armor IP/URL block rules, OAuth token revocation, and CrowdStrike/Defender EDR host containment.
 - **Deterministic Agent Gateway Policy Choke Point** enforcing read-only ingestion isolation and identity authority.
 - **Enterprise SIEM & ITSM Connectors** featuring outbound dispatchers for **Jira Service Desk REST API**, **ServiceNow Incident API**, and **Splunk HEC (HTTP Event Collector)**.
 - **Inbound Webhook Synchronization** (`/api/v1/webhooks/jira`, `/api/v1/webhooks/servicenow`, `/api/v1/webhooks/{source}`) reconciling analyst updates into Cloud Firestore.
 - **Immutable SHA-256 Cryptographic Audit Certificates** (SOC 2 / ISO 27001 legal auditing).
+
 
 ---
 

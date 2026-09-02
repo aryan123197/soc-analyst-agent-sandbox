@@ -18,7 +18,7 @@ Enterprise Security Operations Centers (SOCs) process thousands of untrusted inp
 - **Multi-Stage Cross-Ticket Campaigns (Low-and-Slow Multi-Turn Attacks)**
 - **Malicious C2 Link & Credential Exfiltration Attempts**
 
-The **SOC Analyst Agent** establishes a zero-trust, defense-in-depth pipeline that isolates untrusted inputs, screens payloads at the edge using **Vertex AI Model Armor**, enriches context with **Google Cloud Web Risk API** and **GEAP Memory Bank**, triages alerts with **Gemini 3.5 Flash**, signs every decision with an **Immutable SHA-256 Cryptographic Audit Certificate**, and enforces deterministic action control behind a single **Agent Gateway Policy Choke Point**.
+The **SOC Analyst Agent** establishes a zero-trust, defense-in-depth pipeline that isolates untrusted inputs, detonates suspicious scripts in a **Sandbox Environment**, screens payloads at the edge using **Vertex AI Model Armor**, enriches context with **Google Cloud Web Risk API** and **GEAP Memory Bank**, triages alerts with **Gemini 3.5 Flash**, executes **Automated Containment & Host Isolation Playbooks**, signs every decision with an **Immutable SHA-256 Cryptographic Audit Certificate**, and enforces deterministic action control behind a single **Agent Gateway Policy Choke Point**.
 
 ```mermaid
 flowchart TD
@@ -28,10 +28,11 @@ flowchart TD
         A3[Scraped Web Logs & Tickets]
     end
 
-    subgraph Stage 1: Isolated Ingestion
+    subgraph Stage 1: Isolated Ingestion & Detonation
         B[Ingestion Agent\nRead-Only Sandbox]
         B1[IOC Extractor\nIPs / Hashes / URLs]
         B2[Google Web Risk API\n& Threat Intel Aggregator]
+        B3[Sandbox Code Detonation Engine\nAST Safety + Subprocess Isolation]
     end
 
     subgraph Stage 2: Vertex AI Model Armor Perimeter
@@ -45,32 +46,35 @@ flowchart TD
         E1[Cross-Ticket Campaign\nCorrelation Engine]
     end
 
-    subgraph Stage 4: Agent Gateway Choke Point
+    subgraph Stage 4: Agent Gateway & Active Containment
         F{Deterministic Policy Gateway\nActor Identity Verification}
         F1[Human Analyst Review Queue\nHITL Policy Gatekeeper]
+        F2[Automated Containment Playbooks\nCloud Armor Block / Token Revocation / EDR Isolation]
     end
 
     subgraph Stage 5: Enterprise Persistence & Audit
         G1[Cloud Firestore\nCases & Traces Store]
         G2[Immutable Audit Trail\nSHA-256 Merkle Chain]
-        G3[Outbound Webhooks\nJira / ServiceNow Sync]
+        G3[Outbound Webhooks\nJira / ServiceNow / Splunk Sync]
     end
 
     A1 --> B
     A2 --> B
     A3 --> B
     B --> B1 --> B2
+    B --> B3
     B --> C
     C -- "BLOCKED (Verdict)" --> C1
     C -- "CLEAN (Verdict)" --> D
-    B2 --> D
+    B2 & B3 --> D
     E <--> E1 <--> D
     D --> F
-    F -- "High / Critical Severity" --> F1
+    F -- "High / Critical Severity" --> F1 & F2
     F -- "Action Authorized" --> G1
     F --> G2
     F --> G3
 ```
+
 
 ---
 
